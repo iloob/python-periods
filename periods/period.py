@@ -1,10 +1,11 @@
 import os, logging, imp
 from datetime import date, datetime, time
+
 from dateutil.relativedelta import relativedelta
 from flufl.enum import IntEnum
 
 
-GLOBAL_START_DATE = datetime(2007,1,1)
+GLOBAL_START_DATE = datetime(2007, 1, 1)
 
 
 class Granularity(IntEnum):
@@ -24,178 +25,169 @@ def granularity_from_string(string):
         return Granularity.WEEK
     elif string == 'day':
         return Granularity.DAY
-    return None
+    else:
+        return None
 
 
 class Period(object):
 
     granularity = Granularity.NONE
 
-    def __init__(self, startDate = None, endDate = None):
+    def __init__(self, start_date=None, end_date=None):
 
-        if startDate:
-            self.startDateTime = datetime.strptime(startDate, '%Y-%m-%d') 
+        if start_date:
+            self.start_datetime = datetime.strptime(start_date, '%Y-%m-%d') 
         else:
-            self.startDateTime = GLOBAL_START_DATE
+            self.start_datetime = GLOBAL_START_DATE
 
-        if endDate:
-            dateTime = datetime.strptime(endDate, '%Y-%m-%d')
-            self.endDateTime = dateTime + relativedelta(days=1)
+        if end_date:
+            end_datetime = datetime.strptime(end_date, '%Y-%m-%d')
+            self.end_datetime = end_datetime + relativedelta(days=1)
         else:
-            self.endDateTime = datetime.now()
-
+            self.end_datetime = datetime.now()
 
     def __repr__(self):
-        return "Start: %s End: %s" % (self.getStartDate().strftime("%Y-%m-%d"), self.getStartDate().strftime("%Y-%m-%d"))
+        return "Start: %s End: %s" % (self.get_start_date().strftime("%Y-%m-%d"), self.get_start_date().strftime("%Y-%m-%d"))
 
-
-    def getGranularity(self):
+    def get_granularity(self):
         return self.granularity
 
+    def get_date_limits(self):
+        return self.start_datetime, self.end_datetime
 
-    def getDateLimits(self):
-        return self.startDateTime, self.endDateTime
+    def get_start_date(self):
+        return self.start_datetime.date()
 
+    def get_end_date(self):
+        return self.end_datetime.date() - relativedelta(days=1)
 
-    def getStartDate(self):
-        return self.startDateTime.date()
-        
+    def get_cache_key(self):
+        return "%s/%s" % (self.get_start_date(), self.get_end_date())
 
-    def getEndDate(self):
-        return self.endDateTime.date() - relativedelta(days=1)
+    def split(self, granularity_after_split, exclude_partial=True):
+        """
+        Split a period into a given granularity. Optionally include partial
+        periods at the start and end of the period.
+        """
 
+        if granularity_after_split == Granularity.DAY:
+            return self.get_days()
 
-    def getCacheKey(self):
-        return "%s/%s" % (self.getStartDate(), self.getEndDate())
+        elif granularity_after_split == Granularity.WEEK:
+            return self.get_weeks(exclude_partial)
 
+        elif granularity_after_split == Granularity.MONTH:
+            return self.get_months(exclude_partial)
 
-    def split(self, granularityAfterSplit, excludePartial = True):
-
-        if granularityAfterSplit == Granularity.DAY:
-            return self.getDays()
-
-        elif granularityAfterSplit == Granularity.WEEK:
-            return self.getWeeks(excludePartial)
-
-        elif granularityAfterSplit == Granularity.MONTH:
-            return self.getMonths(excludePartial)
-
-        elif granularityAfterSplit == Granularity.YEAR:
-            return self.getYears(excludePartial)
+        elif granularity_after_split == Granularity.YEAR:
+            return self.get_years(exclude_partial)
 
         else:
-            raise Exception("Invalid granularity: %s" % granularityAfterSplit)
+            raise Exception("Invalid granularity: %s" % granularity_after_split)
 
-
-    def getYears(self, excludePartial):
-
+    def get_years(self, exclude_partial=True):
         from .year import Year
 
-        startDate = self.getStartDate()
-        endDate = self.getEndDate()
+        start_date = self.get_start_date()
+        end_date = self.get_end_date()
 
-        if excludePartial:
+        if exclude_partial:
+            # Exclude first year if start_date not start of year
+            if not (start_date.month == 1 and start_date.day == 1):
+                start_date = start_date + relativedelta(years=1)
 
-            if not (startDate.month == 1 and startDate.day == 1): # Startdate not start of year, excluding first year
-                startDate = startDate + relativedelta(years=1)
+            # Exclude last year if end_date is not end of year
+            if not (end_date.month == 12 and end_date.day == 31):
+                end_date = end_date - relativedelta(years=1)
 
-            if not (endDate.month == 12 and endDate.day == 31): # EndDate is not end of year, excluding last year
-                endDate = endDate - relativedelta(years=1)
-
-        loopDate = startDate
+        loop_date = start_date
         years = []
 
-        while loopDate <= endDate:
-            year = Year(loopDate.year)
+        while loop_date <= end_date:
+            year = Year(loop_date.year)
             years.append(year)
-            loopDate = loopDate + relativedelta(years=1)
+            loop_date = loop_date + relativedelta(years=1)
 
         return years
 
-
-    def getMonths(self, excludePartial):
-
+    def get_months(self, exclude_partial=True):
         from .month import Month
 
-        startDate = self.getStartDate()
-        endDate = self.getEndDate()
+        start_date = self.get_start_date()
+        end_date = self.get_end_date()
 
-        if excludePartial:
-        
-            if startDate.day != 1: # StartDate is not start of month, exclude first month
-                startDate = startDate + relativedelta(months=1)
+        if exclude_partial:
 
-            endMonthStart = date(endDate.year, endDate.month, 1)
-            endMonthEnd = endMonthStart + relativedelta(months=1) - relativedelta(days=1)
+            # Exclude first month if start_date is not start of month
+            if start_date.day != 1:
+                start_date = start_date + relativedelta(months=1)
 
-            if endDate < endMonthEnd: #EndDate not end of month, exclude last month
-                endDate = endDate - relativedelta(months=1)
+            end_month_start = date(end_date.year, end_date.month, 1)
+            end_month_end = end_month_start + relativedelta(months=1) - relativedelta(days=1)
 
-            if endDate <= startDate:
-                raise Exception("Can't get months from period, the granularity is too fine: %s" % self.granularity)
+            # Exclude last month if end_date is not end of month
+            if end_date < end_month_end:
+                end_date = end_date - relativedelta(months=1)
 
-        loopDate = startDate
+        loop_date = start_date
         months = []
-        
-        while loopDate <= endDate:
-            month = Month(loopDate.year, loopDate.month)
+
+        while loop_date <= end_date:
+            month = Month(loop_date.year, loop_date.month)
             months.append(month)
-            loopDate = loopDate + relativedelta(months=1)
+            loop_date = loop_date + relativedelta(months=1)
 
         return months
 
-
-    def getWeeks(self, excludePartial):
-
+    def get_weeks(self, exclude_partial=True):
         from .week import Week
 
-        startDate = self.getStartDate()
-        startWeekDay = startDate.weekday() 
+        start_date = self.get_start_date()
+        start_week_day = start_date.weekday()
 
-        endDate = self.getEndDate()
-        endWeekDay = endDate.weekday() 
+        end_date = self.get_end_date()
+        end_week_day = end_date.weekday()
 
-        if excludePartial:
-            
-            if startWeekDay != 0: # StartDate not start of week, move startDate to next week's start
-                startDate = startDate + relativedelta(days=7-startWeekDay)
-                
-            if endWeekDay != 6: #EndDate not end of week, move endDate to previous week's end
-                endDate = endDate - relativedelta(days=endWeekDay)
+        if exclude_partial:
+
+            # If start_date is not start of week, move start_date to next week's start
+            if start_week_day != 0:
+                start_date = start_date + relativedelta(days=7-start_week_day)
+
+            # If end_date is not end of week, move end_date to previous week's end
+            if end_week_day != 6:
+                end_date = end_date - relativedelta(days=end_week_day)
 
         else:
-            if startWeekDay != 0: # StartDate not start of week, move startDate to start of the week
-                startDate = startDate - relativedelta(days=startWeekDay)
-                
-            if endWeekDay != 6: #EndDate not end of week, move endDate to end of the week
-                endDate = endDate + relativedelta(days=6-endWeekDay)
+            # If start_date not start of week, move start_date to start of the week
+            if start_week_day != 0:
+                start_date = start_date - relativedelta(days=start_week_day)
 
-        if endDate <= startDate:
-                raise Exception("Can't get weeks from period, the granularity is too fine: %s" % self.granularity)
+            # If end_date not end of week, move end_date to end of the week
+            if end_week_day != 6:
+                end_date = end_date + relativedelta(days=6-end_week_day)
 
         weeks = []
 
-        loopDate = startDate
-        while loopDate < endDate:
-            isoDate = loopDate.isocalendar()
-            week = Week(isoDate[0], isoDate[1])
+        loop_date = start_date
+        while loop_date < end_date:
+            iso_date = loop_date.isocalendar()
+            week = Week(iso_date[0], iso_date[1])
             weeks.append(week)
-            loopDate = loopDate + relativedelta(days=7)
+            loop_date = loop_date + relativedelta(days=7)
 
         return weeks
 
-
-    def getDays(self):
-
+    def get_days(self):
         from .day import Day
 
-        loopDate = self.getStartDate()
+        loop_date = self.get_start_date()
         days = []
 
-        while loopDate <= self.getEndDate():
-            day = Day(loopDate.year, loopDate.month, loopDate.day)
+        while loop_date <= self.get_end_date():
+            day = Day(loop_date.year, loop_date.month, loop_date.day)
             days.append(day)
-            loopDate = loopDate + relativedelta(days=1)
+            loop_date = loop_date + relativedelta(days=1)
 
         return days
 
