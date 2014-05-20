@@ -21,6 +21,7 @@ setup(
         "periods",
     ],
     long_description=read("README.md"),
+    install_requires=read("requirements.txt"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
