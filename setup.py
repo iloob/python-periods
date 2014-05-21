@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name="python-periods",
-    version="0.1.0",
+    version="0.1.1",
     description="",
     author="Johanna Eriksson",
     author_email="johanna.eriksson@booli.se",
