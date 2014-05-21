@@ -4,7 +4,7 @@ from periods import *
 
 
 class YearTest(unittest.TestCase):
-    
+
     def testGetYearStartAndEnd(self):
 
         period = Year(2009)
@@ -13,7 +13,6 @@ class YearTest(unittest.TestCase):
 
         self.assertEqual(date(2009, 1, 1), start_date)
         self.assertEqual(date(2009, 12, 31), end_date)
-
 
     def testSplitYearIntoWeeks(self):
 

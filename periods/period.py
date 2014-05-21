@@ -36,7 +36,7 @@ class Period(object):
     def __init__(self, start_date=None, end_date=None):
 
         if start_date:
-            self.start_datetime = datetime.strptime(start_date, '%Y-%m-%d') 
+            self.start_datetime = datetime.strptime(start_date, '%Y-%m-%d')
         else:
             self.start_datetime = GLOBAL_START_DATE
 
@@ -47,7 +47,8 @@ class Period(object):
             self.end_datetime = datetime.now()
 
     def __repr__(self):
-        return "Start: %s End: %s" % (self.get_start_date().strftime("%Y-%m-%d"), self.get_start_date().strftime("%Y-%m-%d"))
+        return "Start: %s End: %s" % (self.get_start_date().strftime("%Y-%m-%d"),
+                                      self.get_start_date().strftime("%Y-%m-%d"))
 
     def get_granularity(self):
         return self.granularity
@@ -190,4 +191,3 @@ class Period(object):
             loop_date = loop_date + relativedelta(days=1)
 
         return days
-

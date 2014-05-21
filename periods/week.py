@@ -23,7 +23,8 @@ class Week(Period):
             if self.week == 1:
                 return "%sW1" % self.get_end_date().year
             elif self.week > 51:
-                return "%sW%s" % (self.get_start_date().year, self.get_start_date().isocalendar()[1])
+                return "%sW%s" % (self.get_start_date().year,
+                                  self.get_start_date().isocalendar()[1])
 
-        return "%sW%s" % (self.get_start_date().year, self.get_start_date().isocalendar()[1])
-
+        return "%sW%s" % (self.get_start_date().year,
+                          self.get_start_date().isocalendar()[1])
