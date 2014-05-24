@@ -27,4 +27,5 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
     ],
+    test_suite="unittests",
 )
