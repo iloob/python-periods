@@ -18,7 +18,8 @@ class Year(Period):
     def __repr__(self):
         return self.start_datetime.strftime("%Y")
 
-    # When getting weeks for a specified year, we expect to get 1-52 (or 53), not the actual weeks for the datespan (default for Period class), 
+    # When getting weeks for a specified year, we expect to get 1-52 (or 53),
+    # not the actual weeks for the datespan (default for Period class),
     # as they may start with for example 52 or end with 1.
     def get_weeks(self, exclude_partial=True):
         end_date = self.get_end_date()
