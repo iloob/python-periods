@@ -48,7 +48,7 @@ class Period(object):
 
     def __repr__(self):
         return "Start: %s End: %s" % (self.get_start_date().strftime("%Y-%m-%d"),
-                                      self.get_start_date().strftime("%Y-%m-%d"))
+                                      self.get_end_date().strftime("%Y-%m-%d"))
 
     def get_granularity(self):
         return self.granularity
@@ -128,7 +128,7 @@ class Period(object):
 
             # Exclude last month if end_date is not end of month
             if end_date < end_month_end:
-                end_date = end_date - relativedelta(months=1)
+                end_date = end_month_end - relativedelta(months=1)
 
         loop_date = start_date
         months = []
