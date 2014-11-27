@@ -11,7 +11,6 @@ GLOBAL_START_DATE = datetime(2007, 1, 1)
 class Granularity(IntEnum):
     NONE = 0
     YEAR = 10
-    QUARTER = 15
     MONTH = 20
     WEEK = 30
     DAY = 40
@@ -37,18 +36,24 @@ class Period(object):
     def __init__(self, start_date=None, end_date=None):
 
         if start_date:
-            self.start_datetime = datetime.strptime(start_date, '%Y-%m-%d')
+            if isinstance(start_date, date):
+                self.start_datetime = datetime.combine(start_date, time())
+            else:
+                self.start_datetime = datetime.strptime(start_date, '%Y-%m-%d')
         else:
             self.start_datetime = GLOBAL_START_DATE
 
         if end_date:
-            end_datetime = datetime.strptime(end_date, '%Y-%m-%d')
+            if isinstance(end_date, date):
+                end_datetime = datetime.combine(end_date, time())
+            else:
+                end_datetime = datetime.strptime(end_date, '%Y-%m-%d')
             self.end_datetime = end_datetime + relativedelta(days=1)
         else:
             self.end_datetime = datetime.now()
 
     def __repr__(self):
-        return "Start: %s End: %s" % (self.get_start_date().strftime("%Y-%m-%d"),
+        return "%s - %s" % (self.get_start_date().strftime("%Y-%m-%d"),
                                       self.get_end_date().strftime("%Y-%m-%d"))
 
     def get_granularity(self):
