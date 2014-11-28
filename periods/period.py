@@ -11,6 +11,7 @@ GLOBAL_START_DATE = datetime(2007, 1, 1)
 class Granularity(IntEnum):
     NONE = 0
     YEAR = 10
+    QUARTER = 15
     MONTH = 20
     WEEK = 30
     DAY = 40
