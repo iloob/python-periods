@@ -20,6 +20,8 @@ class Granularity(IntEnum):
 def granularity_from_string(string):
     if string == 'year':
         return Granularity.YEAR
+    elif string == 'quarter':
+        return Granularity.QUARTER
     elif string == 'month':
         return Granularity.MONTH
     elif string == 'week':
@@ -87,6 +89,9 @@ class Period(object):
         elif granularity_after_split == Granularity.MONTH:
             return self.get_months(exclude_partial)
 
+        elif granularity_after_split == Granularity.QUARTER:
+            return self.get_quarters(exclude_partial)
+
         elif granularity_after_split == Granularity.YEAR:
             return self.get_years(exclude_partial)
 
@@ -117,6 +122,24 @@ class Period(object):
             loop_date = loop_date + relativedelta(years=1)
 
         return years
+
+    def get_quarters(self, exclude_partial=True):
+        from .quarter import Quarter
+
+        start_date = self.get_start_date()
+        end_date = self.get_end_date()
+
+        loop_date = start_date
+        quarters = []
+
+        while loop_date <= end_date:
+            quarter = Quarter(loop_date.year, 1 + ((loop_date.month - 1) / 3))
+            if not exclude_partial or (start_date <= quarter.get_start_date()
+                    and end_date >= quarter.get_end_date()):
+                quarters.append(quarter)
+            loop_date = loop_date + relativedelta(months=3)
+
+        return quarters
 
     def get_months(self, exclude_partial=True):
         from .month import Month
