@@ -11,6 +11,7 @@ GLOBAL_START_DATE = datetime(2007, 1, 1)
 class Granularity(IntEnum):
     NONE = 0
     YEAR = 10
+    HALF_YEAR = 13
     QUARTER = 15
     MONTH = 20
     WEEK = 30
@@ -20,6 +21,8 @@ class Granularity(IntEnum):
 def granularity_from_string(string):
     if string == 'year':
         return Granularity.YEAR
+    elif string == 'half_year':
+        return Granularity.HALF_YEAR
     elif string == 'quarter':
         return Granularity.QUARTER
     elif string == 'month':
@@ -92,6 +95,9 @@ class Period(object):
         elif granularity_after_split == Granularity.QUARTER:
             return self.get_quarters(exclude_partial)
 
+        elif granularity_after_split == Granularity.HALF_YEAR:
+            return self.get_half_years(exclude_partial)
+
         elif granularity_after_split == Granularity.YEAR:
             return self.get_years(exclude_partial)
 
@@ -140,6 +146,24 @@ class Period(object):
             loop_date = loop_date + relativedelta(months=3)
 
         return quarters
+
+    def get_half_years(self, exclude_partial=True):
+        from .halfyear import HalfYear
+
+        start_date = self.get_start_date()
+        end_date = self.get_end_date()
+
+        loop_date = start_date
+        half_years = []
+
+        while loop_date <= end_date:
+            half_year = HalfYear(loop_date.year, 1 + ((loop_date.month - 1) / 6))
+            if not exclude_partial or (start_date <= half_year.get_start_date()
+                    and end_date >= half_year.get_end_date()):
+                half_years.append(half_year)
+            loop_date = loop_date + relativedelta(months=6)
+
+        return half_years
 
     def get_months(self, exclude_partial=True):
         from .month import Month
