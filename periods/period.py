@@ -139,7 +139,7 @@ class Period(object):
         quarters = []
 
         while loop_date <= end_date:
-            quarter = Quarter(loop_date.year, 1 + ((loop_date.month - 1) / 3))
+            quarter = Quarter(loop_date.year, 1 + ((loop_date.month - 1) // 3))
             if not exclude_partial or (start_date <= quarter.get_start_date()
                     and end_date >= quarter.get_end_date()):
                 quarters.append(quarter)
@@ -157,7 +157,7 @@ class Period(object):
         half_years = []
 
         while loop_date <= end_date:
-            half_year = HalfYear(loop_date.year, 1 + ((loop_date.month - 1) / 6))
+            half_year = HalfYear(loop_date.year, 1 + ((loop_date.month - 1) // 6))
             if not exclude_partial or (start_date <= half_year.get_start_date()
                     and end_date >= half_year.get_end_date()):
                 half_years.append(half_year)
