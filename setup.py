@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name="python-periods",
-    version="0.1.5",
+    version="0.2.0",
     description="Some convenient classes and methods for working with time periods",
     author="Johanna Eriksson",
     author_email="johanna.eriksson@booli.se",
